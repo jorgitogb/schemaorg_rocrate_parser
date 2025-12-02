@@ -8,9 +8,7 @@ directories to GitLab repositories using the GitLab API.
 import os
 import base64
 from pathlib import Path
-from typing import Optional, Dict, Any
-from urllib.parse import quote
-import requests
+from typing import Optional, Dict, Any, List
 import gitlab
 from dotenv import load_dotenv
 
@@ -47,14 +45,6 @@ class GitLabSubmitter:
         
         # Convert namespace_id to int (already validated as non-None)
         self.namespace_id = int(self.namespace_id)  # type: ignore
-        
-        # Setup API headers for requests library
-        self.headers = {
-            'PRIVATE-TOKEN': self.private_token,
-            'Content-Type': 'application/json'
-        }
-        
-        self.api_base = f"{self.gitlab_url}/api/v4"
         
         # Initialize python-gitlab client
         self.gl = gitlab.Gitlab(url=self.gitlab_url, private_token=self.private_token)
@@ -119,6 +109,7 @@ class GitLabSubmitter:
         
         try:
             project = self.gl.projects.create(project_params)
+            
             # Return as dict for compatibility
             return project.attributes
         except Exception as e:
@@ -137,20 +128,17 @@ class GitLabSubmitter:
             Response from GitLab API
         """
         try:
-            # Use REST API directly with PUT request
-            url = f"{self.gitlab_url}/api/v4/projects/{project_id}"
-            data = {"topics": topics}
+            # Use python-gitlab library
+            project = self.gl.projects.get(project_id)
+            project.topics = topics
+            project.save()
             
-            response = requests.put(url, headers=self.headers, json=data)
-            response.raise_for_status()
-            
-            result = response.json() if response.text else {}
-            return {"topics": result.get('topics', [])} if result else {}
+            # Refresh to get updated data
+            project = self.gl.projects.get(project_id)
+            return {"topics": project.attributes.get('topics', [])}
             
         except Exception as e:
             print(f"Warning: Failed to update topics: {e}")
-            print(f"  Response status: {response.status_code if 'response' in locals() else 'N/A'}")
-            print(f"  Response text: {response.text[:200] if 'response' in locals() else 'N/A'}")
             return {}
     
     def upload_avatar(self, project_id: int, avatar_path: Path) -> Dict[str, Any]:
@@ -186,7 +174,6 @@ class GitLabSubmitter:
         Returns:
             Project data if exists, None otherwise
         """
-        # Use search API which is more reliable than path-based lookup
         try:
             # Search for project by name
             projects = self.gl.projects.list(search=project_name, owned=True)
@@ -195,15 +182,6 @@ class GitLabSubmitter:
             for project in projects:
                 if project.attributes['name'] == project_name:
                     return project.attributes
-            
-            # Fallback: try path-based lookup with sanitized name
-            sanitized_name = self._sanitize_project_name(project_name)
-            project_path = f"{self.namespace_id}/{sanitized_name}"
-            url = f"{self.api_base}/projects/{quote(project_path, safe='')}"
-            
-            response = requests.get(url, headers=self.headers)
-            if response.status_code == 200:
-                return response.json()
             
             return None
             
@@ -227,8 +205,6 @@ class GitLabSubmitter:
         Returns:
             Response from GitLab API
         """
-        url = f"{self.api_base}/projects/{project_id}/repository/files/{quote(repo_path, safe='')}"
-        
         # Read file content and encode to base64
         with open(file_path, 'rb') as f:
             content = base64.b64encode(f.read()).decode('utf-8')
@@ -237,12 +213,13 @@ class GitLabSubmitter:
             "branch": branch,
             "content": content,
             "commit_message": commit_message,
-            "encoding": "base64"
+            "encoding": "base64",
+            "file_path": repo_path
         }
         
-        response = requests.post(url, headers=self.headers, json=data)
-        response.raise_for_status()
-        return response.json()
+        project = self.gl.projects.get(project_id)
+        result = project.files.create(data)
+        return {"file_path": repo_path, "branch": branch}
     
     def upload_directory(self, project_id: int, directory: Path, 
                         branch: str = "main",
@@ -287,7 +264,6 @@ class GitLabSubmitter:
             })
         
         # Use Commits API to upload all files in one commit
-        url = f"{self.api_base}/projects/{project_id}/repository/commits"
         data = {
             "branch": branch,
             "commit_message": commit_message,
@@ -295,13 +271,11 @@ class GitLabSubmitter:
         }
         
         try:
-            response = requests.post(url, headers=self.headers, json=data)
-            response.raise_for_status()
+            project = self.gl.projects.get(project_id)
+            project.commits.create(data)
             print(f"  ✓ Successfully committed {len(files_to_upload)} files")
-        except requests.exceptions.HTTPError as e:
+        except Exception as e:
             print(f"  ✗ Failed to commit files: {e}")
-            if response.text:
-                print(f"  Response: {response.text}")
             raise
     
     def submit_arc(self, arc_directory: Path, project_name: Optional[str] = None,
@@ -360,13 +334,18 @@ class GitLabSubmitter:
         
         print(f"  ✓ Project created: {project['web_url']}")
         
-        # Set topics via separate update (more reliable on some GitLab instances)
+        # Check which topics were actually set
         if topics:
-            result = self.update_project_topics(project['id'], topics)
-            if result.get('topics'):
-                print(f"  ✓ Topics set: {', '.join(result['topics'])}")
+            actual_topics = project.get('topics', [])
+            if actual_topics:
+                print(f"  ✓ Topics set: {', '.join(actual_topics)}")
+                # Warn if not all topics were set (GitLab may have a limit)
+                if len(actual_topics) < len(topics):
+                    missing = set(topics) - set(actual_topics)
+                    print(f"  ⚠ Note: {len(missing)} topic(s) not set (GitLab may have a limit): {', '.join(missing)}")
             else:
-                print(f"  Note: Topics may need to be set manually in GitLab UI")
+                print(f"  ⚠ Topics not set - this may be a GitLab permission or configuration issue")
+                print(f"    Requested: {', '.join(topics)}")
         
         # Upload avatar if provided
         if avatar_path and avatar_path.exists():
@@ -377,15 +356,14 @@ class GitLabSubmitter:
         # Create branch if not main
         if branch != "main":
             print(f"  Creating branch: {branch}")
-            branch_url = f"{self.api_base}/projects/{project['id']}/repository/branches"
-            branch_data = {"branch": branch, "ref": "main"}
             try:
-                branch_response = requests.post(branch_url, headers=self.headers, json=branch_data)
-                branch_response.raise_for_status()
+                project_obj = self.gl.projects.get(project['id'])
+                project_obj.branches.create({'branch': branch, 'ref': 'main'})
                 print(f"  ✓ Branch created: {branch}")
-            except requests.exceptions.HTTPError as e:
-                if e.response.status_code != 400:  # Branch might already exist
-                    raise
+            except Exception as e:
+                # Branch might already exist
+                if "already exists" not in str(e).lower():
+                    print(f"  ⚠ Branch creation warning: {e}")
         
         # Upload ARC directory
         self.upload_directory(
@@ -408,6 +386,5 @@ class GitLabSubmitter:
         Args:
             project_id: GitLab project ID
         """
-        url = f"{self.api_base}/projects/{project_id}"
-        response = requests.delete(url, headers=self.headers)
-        response.raise_for_status()
+        project = self.gl.projects.get(project_id)
+        project.delete()
