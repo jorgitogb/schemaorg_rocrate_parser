@@ -140,7 +140,9 @@ class ProjectDeleter:
         for project in projects:
             try:
                 print(f"Deleting: {project.name} (ID: {project.id})... ", end='')
-                project.delete()
+                # Need to get full project object before deleting
+                full_project = self.gl.projects.get(project.id)
+                full_project.delete()
                 print("✓ Deleted")
                 deleted_count += 1
             except Exception as e:
