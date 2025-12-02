@@ -1,0 +1,372 @@
+[
+  {
+    "@context": {
+      "@language": "en",
+      "@vocab": "https://schema.org/"
+    },
+    "@type": "Dataset",
+    "about": [
+      {
+        "@id": "http://publications.europa.eu/resource/authority/data-theme/AGRI",
+        "@type": "Class"
+      }
+    ],
+    "author": [
+      {
+        "@type": "Organization",
+        "contactPoint": {
+          "@type": "ContactPoint",
+          "contactType": "technical support",
+          "email": "shu-yin.tung@lfl.bayern.de",
+          "name": "Shu-Yin Tung",
+          "url": ""
+        },
+        "name": "Institute for Agroecology and Organic Farming, Bavarian State Research Center for Agriculture, Freising, Germany "
+      }
+    ],
+    "conditionsOfAccess": [
+      "Restrictions applied to assure the protection of privacy or intellectual property, and any special restrictions or limitations or warnings on using the resource or metadata. Reports, articles, papers, scientific and non - scientific works of any form, including tables, maps, or any other kind of output, in printed or electronic form, based in whole or in part on the data supplied, must contain an acknowledgement of the form: \"Data reused from the BonaRes Data Centre www.bonares.de. This data were created as part of the Rhizo4Bio - rhizotraits's research activities.\" Although every care has been taken in preparing and testing the data, the Rhizo4Bio - rhizotraits and the BonaRes Data Centre cannot guarantee that the data are correct; neither does the Rhizo4Bio - rhizotraits and the BonaRes Data Centre accept any liability whatsoever for any error, missing data or omission in the data, or for any loss or damage arising from its use. The Rhizo4Bio - rhizotraits and BonaRes Data Centre will not be responsible for any direct or indirect use which might be made of the data."
+    ],
+    "dateCreated": [
+      "2023-11-02"
+    ],
+    "dateModified": [
+      "2023-11-02"
+    ],
+    "datePublished": [
+      "2023-11-02"
+    ],
+    "description": "Phenotypic traits, drought responses, and growth parameters of 38 temperate maize varieties under well-watered and drought-stressed conditions in a greenhouse experiment.",
+    "distribution": [
+      {
+        "@type": "DataDownload",
+        "contentUrl": "https://maps.bonares.de/mapapps/resources/apps/bonares/index.html?lang=en&mid=b06de379-f5f5-48b8-8073-389fbbb47ef5",
+        "description": "download",
+        "encodingFormat": [
+          "CSV",
+          "Microsoft Excel (xlsx)",
+          "File-Geodatabase",
+          "TXT"
+        ]
+      }
+    ],
+    "identifier": [
+      "b06de379-f5f5-48b8-8073-389fbbb47ef5",
+      "https://doi.org/10.20387/bonares-310w-sna1"
+    ],
+    "includedInDataCatalog": {
+      "@type": "DataCatalog",
+      "name": "BonaRes Repository"
+    },
+    "keywords": [
+      "Soil",
+      "phenotypic plasticity",
+      "drought stress",
+      "high-throughput phenotyping",
+      "opendata",
+      "maize landraces",
+      "Boden"
+    ],
+    "license": "https://creativecommons.org/licenses/by/4.0/",
+    "name": "Phenotypic traits, drought responses, and growth parameters of 38 temperate maize varieties under well-watered and drought-stressed conditions in a greenhouse experiment",
+    "publisher": [
+      {
+        "@type": "Organization",
+        "contactPoint": {
+          "@type": "ContactPoint",
+          "contactType": "technical support",
+          "email": "dataservice@zalf.de",
+          "name": "zalf",
+          "telephone": "+49 33432 82 300"
+        },
+        "name": "Leibniz Centre for Agricultural Landscape Research (ZALF)"
+      }
+    ],
+    "sourceOrganization": [
+      {
+        "@type": "Organization",
+        "contactPoint": {
+          "@type": "ContactPoint",
+          "contactType": "technical support",
+          "email": "Johanna.Pausch@uni-bayreuth.de",
+          "name": "Johanna Pausch"
+        },
+        "name": "Agroecology, Bayreuth Center of Ecology and Environmental Research (BayCEER), University of Bayreuth, Bayreuth, Germany "
+      }
+    ],
+    "spatialCoverage": [
+      {
+        "@type": "Place",
+        "geo": {
+          "@type": "GeoShape",
+          "box": "47.26 5.81 54.76 15.77"
+        }
+      }
+    ]
+  },
+  {
+    "@context": {
+      "@language": "en",
+      "@vocab": "https://schema.org/"
+    },
+    "@type": "Dataset",
+    "about": [
+      {
+        "@id": "http://publications.europa.eu/resource/authority/data-theme/AGRI",
+        "@type": "Class"
+      }
+    ],
+    "author": [
+      {
+        "@type": "Organization",
+        "contactPoint": {
+          "@type": "ContactPoint",
+          "contactType": "technical support",
+          "email": "naaf@zalf.de",
+          "name": "Tobias Naaf",
+          "url": ""
+        },
+        "name": "Leibniz Centre for Agricultural Landscape Research"
+      }
+    ],
+    "conditionsOfAccess": [
+      "Restrictions applied to assure the protection of privacy or intellectual property, and any special restrictions or limitations or warnings on using the resource or metadata. Reports, articles, papers, scientific and non - scientific works of any form, including tables, maps, or any other kind of output, in printed or electronic form, based in whole or in part on the data supplied, must contain an acknowledgement of the form: \"Data reused from the BonaRes Data Centre www.bonares.de. This data were created as part of the ZALF Datenerfassung's research activities.\" Although every care has been taken in preparing and testing the data, the ZALF Datenerfassung and the BonaRes Data Centre cannot guarantee that the data are correct; neither does the ZALF Datenerfassung and the BonaRes Data Centre accept any liability whatsoever for any error, missing data or omission in the data, or for any loss or damage arising from its use. The ZALF Datenerfassung and BonaRes Data Centre will not be responsible for any direct or indirect use which might be made of the data."
+    ],
+    "dateCreated": [
+      "2025-11-05"
+    ],
+    "dateModified": [
+      "2025-11-05"
+    ],
+    "datePublished": [
+      "2025-11-05"
+    ],
+    "description": "ECO\u00b2SCAPE Social Network Analysis                  .",
+    "identifier": [
+      "c158bd17-f81d-4600-9e06-e1fe1c2ccf64",
+      "https://doi.org/10.7802/2928"
+    ],
+    "includedInDataCatalog": {
+      "@type": "DataCatalog",
+      "name": "BonaRes Repository"
+    },
+    "keywords": [
+      "agricultural landscape",
+      "farmers",
+      "biodiversity",
+      "resource conservation",
+      "network analysis",
+      "sociology",
+      "opendata",
+      "social relations",
+      "Lebensr\u00e4ume und Biotope",
+      "Germany",
+      "Northwest Saxony"
+    ],
+    "license": "https://creativecommons.org/licenses/by/4.0/",
+    "name": "ECO\u00b2SCAPE Social Network Analysis",
+    "publisher": [
+      {
+        "@type": "Organization",
+        "contactPoint": {
+          "@type": "ContactPoint",
+          "contactType": "technical support",
+          "email": "pm@gesis.org",
+          "name": "Leibniz Centre for the Social Sciences",
+          "url": ""
+        },
+        "name": "GESIS"
+      }
+    ],
+    "sourceOrganization": [
+      {
+        "@type": "Organization",
+        "contactPoint": {
+          "@type": "ContactPoint",
+          "contactType": "technical support",
+          "email": "maria.kernecker@zalf.de",
+          "name": "Maria Kernecker",
+          "url": ""
+        },
+        "name": "Leibniz Centre for Agricultural Landscape Research"
+      }
+    ],
+    "spatialCoverage": [
+      {
+        "@type": "Place",
+        "geo": {
+          "@type": "GeoShape",
+          "box": "50.171543 11.871463 51.684974 15.041832"
+        }
+      }
+    ]
+  },
+  {
+    "@context": {
+      "@language": "en",
+      "@vocab": "https://schema.org/"
+    },
+    "@type": "Dataset",
+    "about": [
+      {
+        "@id": "http://publications.europa.eu/resource/authority/data-theme/AGRI",
+        "@type": "Class"
+      }
+    ],
+    "author": [
+      {
+        "@type": "Organization",
+        "contactPoint": {
+          "@type": "ContactPoint",
+          "contactType": "technical support",
+          "email": "henning.schwalm@boku.ac.at",
+          "name": "Henning Schwalm",
+          "url": ""
+        },
+        "name": "University of Natural Resources and Life Sciences, Vienna"
+      },
+      {
+        "@type": "Organization",
+        "contactPoint": {
+          "@type": "ContactPoint",
+          "contactType": "technical support",
+          "email": "staudinger.ce@gmail.com",
+          "name": "Christiana Staudinger",
+          "url": ""
+        },
+        "name": "University of Natural Resources and Life Sciences, Vienna"
+      },
+      {
+        "@type": "Organization",
+        "contactPoint": {
+          "@type": "ContactPoint",
+          "contactType": "technical support",
+          "email": "mohammad@ipk-gatersleben.de",
+          "name": "Mohammad-Reza Hajirezaei",
+          "url": ""
+        },
+        "name": "Leibniz Institute of Plant Genetics and Crop Plant Research, Department of Physiology and Cell Biology, Gartersleben, Germany "
+      },
+      {
+        "@type": "Organization",
+        "contactPoint": {
+          "@type": "ContactPoint",
+          "contactType": "technical support",
+          "email": "Eva.Mundschenk@zalf.de",
+          "name": "Eva Mundschenk"
+        },
+        "name": "Leibniz Centre for Agricultural Landscape Research"
+      },
+      {
+        "@type": "Organization",
+        "contactPoint": {
+          "@type": "ContactPoint",
+          "contactType": "technical support",
+          "email": "alireza.golestani-fard@boku.ac.at",
+          "name": "Alireza Golestanifard"
+        },
+        "name": "University of Natural Resources and Life Sciences, Vienna"
+      },
+      {
+        "@type": "Organization",
+        "contactPoint": {
+          "@type": "ContactPoint",
+          "contactType": "technical support",
+          "email": "Maire.Holz@zalf.de",
+          "name": "Maire Holz",
+          "url": ""
+        },
+        "name": "Leibniz Centre for Agricultural Landscape Research"
+      },
+      {
+        "@type": "Organization",
+        "contactPoint": {
+          "@type": "ContactPoint",
+          "contactType": "technical support",
+          "email": "mc.wissuwa@gmail.com",
+          "name": "Matthias Wissuwa",
+          "url": ""
+        },
+        "name": "Japan International Research Center for Agricultural Sciences, Tsukuba, Japan"
+      },
+      {
+        "@type": "Organization",
+        "contactPoint": {
+          "@type": "ContactPoint",
+          "contactType": "technical support",
+          "email": "eva.oburger@boku.ac.at",
+          "name": "Eva Oburger",
+          "url": ""
+        },
+        "name": "University of Natural Resources and Life Sciences, Vienna"
+      }
+    ],
+    "conditionsOfAccess": [
+      "Restrictions applied to assure the protection of privacy or intellectual property, and any special restrictions or limitations or warnings on using the resource or metadata. Reports, articles, papers, scientific and non - scientific works of any form, including tables, maps, or any other kind of output, in printed or electronic form, based in whole or in part on the data supplied, must contain an acknowledgement of the form: \"Data reused from the BonaRes Data Centre www.bonares.de. This data were created as part of the ZALF Datenerfassung's research activities.\" Although every care has been taken in preparing and testing the data, the ZALF Datenerfassung and the BonaRes Data Centre cannot guarantee that the data are correct; neither does the ZALF Datenerfassung and the BonaRes Data Centre accept any liability whatsoever for any error, missing data or omission in the data, or for any loss or damage arising from its use. The ZALF Datenerfassung and BonaRes Data Centre will not be responsible for any direct or indirect use which might be made of the data."
+    ],
+    "dateCreated": [
+      "2025-10-01"
+    ],
+    "dateModified": [
+      "2025-10-01"
+    ],
+    "datePublished": [
+      "2025-10-01"
+    ],
+    "description": "Root exudation patterns of contrasting rice (Oryza sativa L.) lines in response to P limitation.",
+    "identifier": [
+      "5161534a-be97-42aa-9d43-ab26b1f6d4fe",
+      "https://doi.org/10.4228/zalf-yfyb-1s63"
+    ],
+    "includedInDataCatalog": {
+      "@type": "DataCatalog",
+      "name": "BonaRes Repository"
+    },
+    "keywords": [
+      "Soil",
+      "greenhouses",
+      "pot experimentation",
+      "opendata",
+      "Boden",
+      "non-geographic"
+    ],
+    "license": "https://creativecommons.org/licenses/by/4.0/",
+    "name": "Root exudation patterns of contrasting rice (Oryza sativa L.) lines in response to P limitation",
+    "publisher": [
+      {
+        "@type": "Organization",
+        "contactPoint": {
+          "@type": "ContactPoint",
+          "contactType": "technical support",
+          "email": "dataservice@zalf.de",
+          "name": "Leibniz Centre for Agricultural Landscape Research",
+          "telephone": "+49 33432 82 300",
+          "url": ""
+        },
+        "name": "ZALF"
+      }
+    ],
+    "sourceOrganization": [
+      {
+        "@type": "Organization",
+        "contactPoint": {
+          "@type": "ContactPoint",
+          "contactType": "technical support",
+          "email": "eva.oburger@boku.ac.at",
+          "name": "Eva Oburger",
+          "url": ""
+        },
+        "name": "University of Natural Resources and Life Sciences, Vienna"
+      }
+    ],
+    "spatialCoverage": [
+      {
+        "@type": "Place",
+        "geo": {
+          "@type": "GeoShape",
+          "box": "47.26 5.81 54.76 15.77"
+        }
+      }
+    ]
+  }
+]

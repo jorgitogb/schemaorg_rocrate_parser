@@ -120,8 +120,15 @@ class BatchProcessor:
         # Remove extension
         name = filename.replace('.json', '')
         
-        # Remove common prefixes
-        name = name.replace('example_', '')
+        # Remove common prefixes in order (most specific first)
+        if name.startswith('test_first3_'):
+            name = name.replace('test_first3_', '', 1)
+        elif name.startswith('test_avatar_'):
+            name = name.replace('test_avatar_', '', 1)
+        elif name.startswith('example_'):
+            name = name.replace('example_', '', 1)
+        
+        # Remove suffix
         name = name.replace('_full', '')
         
         # Take first part if underscore-separated
