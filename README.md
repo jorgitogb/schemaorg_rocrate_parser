@@ -61,6 +61,9 @@ The batch processor will:
 2. Build ISA RO-Crate structures
 3. Create ARC directories using ARCtrl
 4. Optionally submit each ARC to GitLab
+5. Save failed datasets to `*_bad_file.json` for debugging
+
+**Note:** If any datasets fail to process (e.g., due to malformed data), they will be automatically saved to a separate file named `{original_filename}_bad_file.json` in the same directory for later inspection and correction.
 
 See [scripts/README.md](scripts/README.md) for detailed documentation.
 

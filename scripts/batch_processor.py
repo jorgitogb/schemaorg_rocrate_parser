@@ -391,12 +391,24 @@ class BatchProcessor:
             
             # Process each dataset
             results = []
+            failed_datasets = []
             for i, (dataset, dataset_id) in enumerate(zip(datasets, dataset_ids), 1):
                 if len(datasets) > 1:
                     print(f"\n[Dataset {i}/{len(datasets)}]")
                 result = self.process_dataset(dataset, dataset_id, json_file)
                 result['source_file'] = json_file.name
                 results.append(result)
+                
+                # Collect failed datasets
+                if not result['success']:
+                    failed_datasets.append(dataset)
+            
+            # Save failed datasets to *_bad_file.json if any failures
+            if failed_datasets:
+                bad_file_path = json_file.parent / f"{json_file.stem}_bad_file.json"
+                with open(bad_file_path, 'w') as f:
+                    json.dump(failed_datasets, f, indent=2)
+                print(f"\n⚠ Saved {len(failed_datasets)} failed dataset(s) to: {bad_file_path.name}")
             
             return results
             
