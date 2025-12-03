@@ -2,6 +2,7 @@
 
 import argparse
 import json
+import re
 from pathlib import Path
 from arctrl import ARC
 
@@ -18,6 +19,38 @@ class ARCCreator:
         self.rocrate_path = rocrate_path
         self.output_dir = rocrate_path.parent
         self.arc_identifier = None
+    
+    @staticmethod
+    def sanitize_identifier(identifier: str) -> str:
+        """
+        Sanitize identifier to only contain allowed characters.
+        
+        ARCtrl allows: letters, digits, underscore (_), dash (-), and whitespace ( ).
+        German umlauts are transliterated to their standard replacements.
+        
+        Args:
+            identifier: Original identifier
+            
+        Returns:
+            Sanitized identifier
+        """
+        # Replace German umlauts with standard transliterations
+        umlaut_map = {
+            'ä': 'ae', 'ö': 'oe', 'ü': 'ue',
+            'Ä': 'Ae', 'Ö': 'Oe', 'Ü': 'Ue',
+            'ß': 'ss'
+        }
+        sanitized = identifier
+        for umlaut, replacement in umlaut_map.items():
+            sanitized = sanitized.replace(umlaut, replacement)
+        
+        # Replace any remaining special characters with underscores
+        sanitized = re.sub(r'[^a-zA-Z0-9_\- ]', '_', sanitized)
+        # Remove consecutive underscores/spaces
+        sanitized = re.sub(r'[_\s]+', '_', sanitized)
+        # Remove leading/trailing underscores
+        sanitized = sanitized.strip('_')
+        return sanitized
         
     def create_arc(self) -> ARC:
         """Create ARC from RO-Crate metadata using ARCtrl.
@@ -47,11 +80,11 @@ class ARCCreator:
             if 'publicReleaseDate' in investigation_entity:
                 arc.PublicReleaseDate = investigation_entity['publicReleaseDate']
                 
-            # Change identifier to title with underscores
+            # Change identifier to title with sanitization
             title = investigation_entity.get('name', '')
             if title:
-                # Replace spaces and special characters with underscores
-                new_identifier = title.replace(' ', '_').replace('/', '_').replace('\\', '_')
+                # Sanitize to remove forbidden characters (umlauts, special chars)
+                new_identifier = self.sanitize_identifier(title)
                 arc.Identifier = new_identifier
                 # Store identifier for ARC directory naming
                 self.arc_identifier = new_identifier

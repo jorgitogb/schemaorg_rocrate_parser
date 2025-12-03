@@ -306,10 +306,9 @@ class BatchProcessor:
             arc = arc_creator.create_arc()
             
             # Use the ARC's identifier if available, otherwise use our short name
+            # Always sanitize to remove forbidden characters (umlauts, special chars)
             arc_name = arc.Identifier if arc.Identifier else short_name
-            # Also apply shortening to ARC identifier if it's too long
-            if len(arc_name) > 50:
-                arc_name = self.generate_short_name(arc_name, max_length=50)
+            arc_name = self.generate_short_name(arc_name, max_length=50)
             
             arc_path = output_path / arc_name
             

@@ -1,0 +1,90 @@
+{
+    "@context": "https://w3id.org/ro/crate/1.1/context",
+    "@graph": [
+        {
+            "@id": "./",
+            "@type": "Dataset",
+            "additionalType": "Investigation",
+            "contributor": [
+                {
+                    "@id": "#Person_Rico_Lippmann"
+                }
+            ],
+            "creator": [
+                {
+                    "@id": "#Person_Rico_Lippmann"
+                },
+                {
+                    "@id": "#Person_Rico_Lippmann"
+                }
+            ],
+            "datePublished": "2012-01-01",
+            "description": "Vergleichende Proteinanalyse ('shot gun') zwischen Pollenembryogenese nach K\u00e4ltestress-Induktion und gametophytischer Entwicklung von Hordeum vulgare. Replikat 1 der Untersuchung.",
+            "hasPart": [
+                {
+                    "@id": "assays/10_5447_ipk_2012_1/"
+                },
+                {
+                    "@id": "studies/10_5447_ipk_2012_1/"
+                }
+            ],
+            "identifier": "10.5447/ipk/2012/1",
+            "inLanguage": "de",
+            "keywords": [
+                "Pollen Embryogenese",
+                "Hordeum vulgare",
+                "Mikrosporen",
+                "Proteinanalyse"
+            ],
+            "license": "https://creativecommons.org/licenses/by/4.0/",
+            "name": "Physiologische und bioanalytische Untersuchungen w\u00e4hrend der Pollenembryogenese von Hordeum vulgare",
+            "publicReleaseDate": "2012-01-01",
+            "publisher": {
+                "@id": "#Organization_e!DAL_-_Plant_Genomics_and_Phenomics_Research_Data"
+            },
+            "submissionDate": "2012-01-01"
+        },
+        {
+            "@id": "ro-crate-metadata.json",
+            "@type": "CreativeWork",
+            "about": {
+                "@id": "./"
+            },
+            "conformsTo": {
+                "@id": "https://w3id.org/ro/crate/1.1"
+            }
+        },
+        {
+            "@id": "#Person_Rico_Lippmann",
+            "@type": "Person",
+            "address": "Leibniz Institute of Plant Genetics and Crop Plant Research (IPK), Seeland OT Gatersleben, Corrensstra\u00dfe 3, D-06466, Germany",
+            "familyName": "Lippmann",
+            "givenName": "Rico",
+            "name": "Rico Lippmann"
+        },
+        {
+            "@id": "#Organization_e!DAL_-_Plant_Genomics_and_Phenomics_Research_Data",
+            "@type": "Organization",
+            "name": "e!DAL - Plant Genomics and Phenomics Research Data Repository (PGP), IPK Gatersleben"
+        },
+        {
+            "@id": "studies/10_5447_ipk_2012_1/",
+            "@type": "Dataset",
+            "additionalType": "Study",
+            "creator": [
+                {
+                    "@id": "#Person_Rico_Lippmann"
+                }
+            ],
+            "description": "Vergleichende Proteinanalyse ('shot gun') zwischen Pollenembryogenese nach K\u00e4ltestress-Induktion und gametophytischer Entwicklung von Hordeum vulgare. Replikat 1 der Untersuchung.",
+            "identifier": "10_5447_ipk_2012_1",
+            "name": "Physiologische und bioanalytische Untersuchungen w\u00e4hrend der Pollenembryogenese von Hordeum vulgare"
+        },
+        {
+            "@id": "assays/10_5447_ipk_2012_1/",
+            "@type": "Dataset",
+            "additionalType": "Assay",
+            "identifier": "10_5447_ipk_2012_1"
+        }
+    ]
+}
