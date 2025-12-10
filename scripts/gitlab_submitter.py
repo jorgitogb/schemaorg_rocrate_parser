@@ -8,9 +8,8 @@ directories to GitLab repositories using the GitLab API.
 import os
 import base64
 from pathlib import Path
-from typing import Optional, Dict, Any
-from urllib.parse import quote
-import requests
+from typing import Optional, Dict, Any, List
+import gitlab
 from dotenv import load_dotenv
 
 
@@ -47,13 +46,8 @@ class GitLabSubmitter:
         # Convert namespace_id to int (already validated as non-None)
         self.namespace_id = int(self.namespace_id)  # type: ignore
         
-        # Setup API headers
-        self.headers = {
-            'PRIVATE-TOKEN': self.private_token,
-            'Content-Type': 'application/json'
-        }
-        
-        self.api_base = f"{self.gitlab_url}/api/v4"
+        # Initialize python-gitlab client
+        self.gl = gitlab.Gitlab(url=self.gitlab_url, private_token=self.private_token)
     
     def _sanitize_project_name(self, name: str) -> str:
         """
@@ -82,7 +76,8 @@ class GitLabSubmitter:
         return sanitized
     
     def create_project(self, name: str, description: str = "", 
-                      visibility: str = "private") -> Dict[str, Any]:
+                      visibility: str = "private",
+                      topics: list[str] | None = None) -> Dict[str, Any]:
         """
         Create a new GitLab project.
         
@@ -90,6 +85,7 @@ class GitLabSubmitter:
             name: Project name (will be sanitized for GitLab)
             description: Project description
             visibility: Project visibility (private, internal, public)
+            topics: List of topics/tags for the project
         
         Returns:
             Project data from GitLab API
@@ -97,8 +93,8 @@ class GitLabSubmitter:
         # Sanitize the project name for GitLab path
         sanitized_name = self._sanitize_project_name(name)
         
-        url = f"{self.api_base}/projects"
-        data = {
+        # Use python-gitlab library which handles topics correctly
+        project_params = {
             "name": name,  # Keep original name as display name
             "path": sanitized_name,  # Use sanitized name as path
             "description": description,
@@ -107,16 +103,66 @@ class GitLabSubmitter:
             "initialize_with_readme": False
         }
         
-        response = requests.post(url, headers=self.headers, json=data)
+        # Add topics if provided
+        if topics:
+            project_params["topics"] = topics
+        
         try:
-            response.raise_for_status()
-        except requests.exceptions.HTTPError as e:
-            # Print error details for debugging
+            project = self.gl.projects.create(project_params)
+            
+            # Return as dict for compatibility
+            return project.attributes
+        except Exception as e:
             print(f"Error creating project: {e}")
-            if response.text:
-                print(f"Response: {response.text}")
             raise
-        return response.json()
+    
+    def update_project_topics(self, project_id: int, topics: list[str]) -> Dict[str, Any]:
+        """
+        Update topics/tags for a GitLab project.
+        
+        Args:
+            project_id: GitLab project ID
+            topics: List of topics/tags to set
+        
+        Returns:
+            Response from GitLab API
+        """
+        try:
+            # Use python-gitlab library
+            project = self.gl.projects.get(project_id)
+            project.topics = topics
+            project.save()
+            
+            # Refresh to get updated data
+            project = self.gl.projects.get(project_id)
+            return {"topics": project.attributes.get('topics', [])}
+            
+        except Exception as e:
+            print(f"Warning: Failed to update topics: {e}")
+            return {}
+    
+    def upload_avatar(self, project_id: int, avatar_path: Path) -> Dict[str, Any]:
+        """
+        Upload an avatar/logo for a GitLab project.
+        
+        Args:
+            project_id: GitLab project ID
+            avatar_path: Path to avatar image file
+        
+        Returns:
+            Response from GitLab API
+        """
+        try:
+            # Use python-gitlab library to set avatar
+            project = self.gl.projects.get(project_id)
+            with open(avatar_path, 'rb') as avatar_file:
+                project.avatar = avatar_file
+                project.save()
+            return {"avatar_url": project.attributes.get("avatar_url")}
+        except Exception as e:
+            print(f"Warning: Failed to upload avatar: {e}")
+            # Don't raise - avatar upload is not critical
+            return {}
     
     def project_exists(self, project_name: str) -> Optional[Dict[str, Any]]:
         """
@@ -128,21 +174,20 @@ class GitLabSubmitter:
         Returns:
             Project data if exists, None otherwise
         """
-        # Sanitize the project name to match what would be created
-        sanitized_name = self._sanitize_project_name(project_name)
-        
-        # URL encode the project path
-        project_path = f"{self.namespace_id}/{sanitized_name}"
-        url = f"{self.api_base}/projects/{quote(project_path, safe='')}"
-        
         try:
-            response = requests.get(url, headers=self.headers)
-            response.raise_for_status()
-            return response.json()
-        except requests.exceptions.HTTPError as e:
-            if e.response.status_code == 404:
-                return None
-            raise
+            # Search for project by name
+            projects = self.gl.projects.list(search=project_name, owned=True)
+            
+            # Look for exact name match
+            for project in projects:
+                if project.attributes['name'] == project_name:
+                    return project.attributes
+            
+            return None
+            
+        except Exception as e:
+            print(f"Error checking if project exists: {e}")
+            return None
     
     def upload_file(self, project_id: int, file_path: Path, 
                    repo_path: str, branch: str = "main",
@@ -160,8 +205,6 @@ class GitLabSubmitter:
         Returns:
             Response from GitLab API
         """
-        url = f"{self.api_base}/projects/{project_id}/repository/files/{quote(repo_path, safe='')}"
-        
         # Read file content and encode to base64
         with open(file_path, 'rb') as f:
             content = base64.b64encode(f.read()).decode('utf-8')
@@ -170,12 +213,13 @@ class GitLabSubmitter:
             "branch": branch,
             "content": content,
             "commit_message": commit_message,
-            "encoding": "base64"
+            "encoding": "base64",
+            "file_path": repo_path
         }
         
-        response = requests.post(url, headers=self.headers, json=data)
-        response.raise_for_status()
-        return response.json()
+        project = self.gl.projects.get(project_id)
+        result = project.files.create(data)
+        return {"file_path": repo_path, "branch": branch}
     
     def upload_directory(self, project_id: int, directory: Path, 
                         branch: str = "main",
@@ -220,7 +264,6 @@ class GitLabSubmitter:
             })
         
         # Use Commits API to upload all files in one commit
-        url = f"{self.api_base}/projects/{project_id}/repository/commits"
         data = {
             "branch": branch,
             "commit_message": commit_message,
@@ -228,18 +271,18 @@ class GitLabSubmitter:
         }
         
         try:
-            response = requests.post(url, headers=self.headers, json=data)
-            response.raise_for_status()
+            project = self.gl.projects.get(project_id)
+            project.commits.create(data)
             print(f"  ✓ Successfully committed {len(files_to_upload)} files")
-        except requests.exceptions.HTTPError as e:
+        except Exception as e:
             print(f"  ✗ Failed to commit files: {e}")
-            if response.text:
-                print(f"  Response: {response.text}")
             raise
     
     def submit_arc(self, arc_directory: Path, project_name: Optional[str] = None,
                    description: str = "", overwrite: bool = False,
-                   branch: str = "main") -> Dict[str, Any]:
+                   branch: str = "main",
+                   topics: list[str] | None = None,
+                   avatar_path: Optional[Path] = None) -> Dict[str, Any]:
         """
         Submit an ARC directory to GitLab.
         
@@ -249,6 +292,8 @@ class GitLabSubmitter:
             description: Project description
             overwrite: If True, delete and recreate existing project
             branch: Branch name to commit to (default: main)
+            topics: List of topics/tags for the project
+            avatar_path: Path to avatar/logo image file (optional)
         
         Returns:
             Project information
@@ -276,26 +321,49 @@ class GitLabSubmitter:
         
         # Create new project
         print(f"  Creating GitLab project: {project_name}")
+        if topics:
+            print(f"  Topics: {', '.join(topics)}")
+        
+        # Create project (topics in params may be ignored on some GitLab versions)
         project = self.create_project(
             name=project_name,
             description=description,
-            visibility="private"
+            visibility="private",
+            topics=topics  # Try to set during creation
         )
         
         print(f"  ✓ Project created: {project['web_url']}")
         
+        # Check which topics were actually set
+        if topics:
+            actual_topics = project.get('topics', [])
+            if actual_topics:
+                print(f"  ✓ Topics set: {', '.join(actual_topics)}")
+                # Warn if not all topics were set (GitLab may have a limit)
+                if len(actual_topics) < len(topics):
+                    missing = set(topics) - set(actual_topics)
+                    print(f"  ⚠ Note: {len(missing)} topic(s) not set (GitLab may have a limit): {', '.join(missing)}")
+            else:
+                print(f"  ⚠ Topics not set - this may be a GitLab permission or configuration issue")
+                print(f"    Requested: {', '.join(topics)}")
+        
+        # Upload avatar if provided
+        if avatar_path and avatar_path.exists():
+            print(f"  Uploading avatar: {avatar_path.name}")
+            self.upload_avatar(project['id'], avatar_path)
+            print(f"  ✓ Avatar uploaded")
+        
         # Create branch if not main
         if branch != "main":
             print(f"  Creating branch: {branch}")
-            branch_url = f"{self.api_base}/projects/{project['id']}/repository/branches"
-            branch_data = {"branch": branch, "ref": "main"}
             try:
-                branch_response = requests.post(branch_url, headers=self.headers, json=branch_data)
-                branch_response.raise_for_status()
+                project_obj = self.gl.projects.get(project['id'])
+                project_obj.branches.create({'branch': branch, 'ref': 'main'})
                 print(f"  ✓ Branch created: {branch}")
-            except requests.exceptions.HTTPError as e:
-                if e.response.status_code != 400:  # Branch might already exist
-                    raise
+            except Exception as e:
+                # Branch might already exist
+                if "already exists" not in str(e).lower():
+                    print(f"  ⚠ Branch creation warning: {e}")
         
         # Upload ARC directory
         self.upload_directory(
@@ -318,6 +386,5 @@ class GitLabSubmitter:
         Args:
             project_id: GitLab project ID
         """
-        url = f"{self.api_base}/projects/{project_id}"
-        response = requests.delete(url, headers=self.headers)
-        response.raise_for_status()
+        project = self.gl.projects.get(project_id)
+        project.delete()

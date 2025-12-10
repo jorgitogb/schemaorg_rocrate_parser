@@ -38,7 +38,36 @@ pip install -e .
 
 ## Usage
 
-### Command Line
+### Batch Processing (Recommended)
+
+Process multiple JSON files from a folder, generate RO-Crates and ARCs, and optionally submit to GitLab:
+
+```bash
+# Process all JSON files in examples/ folder
+python scripts/batch_processor.py examples/
+
+# Process and submit to GitLab
+python scripts/batch_processor.py examples/ --submit
+
+# Custom output directory
+python scripts/batch_processor.py examples/ --output my_output/
+
+# Process a single file
+python scripts/batch_processor.py examples/ --file example_bonares.json
+```
+
+The batch processor will:
+1. Parse each JSON file's Schema.org metadata
+2. Build ISA RO-Crate structures
+3. Create ARC directories using ARCtrl
+4. Optionally submit each ARC to GitLab
+5. Save failed datasets to `*_bad_file.json` for debugging
+
+**Note:** If any datasets fail to process (e.g., due to malformed data), they will be automatically saved to a separate file named `{original_filename}_bad_file.json` in the same directory for later inspection and correction.
+
+See [scripts/README.md](scripts/README.md) for detailed documentation.
+
+### Command Line (Single File)
 
 Parse a JSON-LD file and create an RO-Crate:
 
