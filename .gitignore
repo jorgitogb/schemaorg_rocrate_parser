@@ -12,6 +12,5 @@ wheels/
 # Environment variables
 .env
 .env.local
-
-# exclude output data files
-output_crates/
+.env.dev
+.env.prod
