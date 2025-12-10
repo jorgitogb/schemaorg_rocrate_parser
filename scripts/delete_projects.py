@@ -12,7 +12,6 @@ Use with caution! Projects are permanently deleted.
 
 import argparse
 import sys
-from pathlib import Path
 from typing import List, Optional
 import gitlab
 from dotenv import load_dotenv
