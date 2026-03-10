@@ -59,16 +59,29 @@ class ISAROCrateBuilder:
         name = self._extract_first_value(dataset.get('name', ''))
         description = self._extract_first_value(dataset.get('description', ''))
         
+        # Truncate name to avoid Windows path length issues (max 260 chars)
+        # Leave room for path prefix and file extensions (~100 chars for safety)
+        if len(name) > 100:
+            name = name[:97] + '...'
+        
         props: Dict[str, Any] = {
             'additionalType': 'Investigation',
             'name': name,
             'description': description,
         }
         
-        # Add identifier
+        # Add identifier - generate one if missing or empty
         identifier = dataset.get('identifier', dataset.get('@id', ''))
         if identifier:
-            props['identifier'] = self._extract_first_value(identifier)
+            identifier = self._extract_first_value(identifier)
+        
+        # If identifier is empty or None, generate one from name or use uuid
+        if not identifier:
+            import hashlib
+            name_hash = hashlib.md5(name.encode('utf-8')).hexdigest()[:8]
+            identifier = f"dataset_{name_hash}"
+        
+        props['identifier'] = identifier
         
         # Add dates
         if dataset.get('datePublished'):
@@ -89,13 +102,18 @@ class ISAROCrateBuilder:
         if dataset.get('dateModified'):
             props['dateModified'] = self._extract_first_value(dataset['dateModified'])
         
-        # Add license
+        # Add license - ensure it has @id if it's an object
         if dataset.get('license'):
             license_val = dataset['license']
             if isinstance(license_val, list):
-                props['license'] = license_val[0] if license_val else ''
-            else:
-                props['license'] = license_val
+                license_val = license_val[0] if license_val else ''
+            
+            # If license is a dict (CreativeWork) without @id, add one
+            if isinstance(license_val, dict) and '@id' not in license_val:
+                license_name = license_val.get('name', 'license')
+                license_val['@id'] = f"#license_{hash(license_name) & 0x7FFFFFFF}"
+            
+            props['license'] = license_val
         
         # Add keywords
         if dataset.get('keywords'):
@@ -223,9 +241,33 @@ class ISAROCrateBuilder:
         #         if isinstance(funding_data, dict) and funding_data.get('funder'):
         #             props['funding'] = {'funder': funding_data['funder']}
         
-        # Handle distribution
+        # Handle distribution - ensure each has an @id
         if dataset.get('distribution'):
-            props['distribution'] = dataset['distribution']
+            distributions = dataset['distribution']
+            if not isinstance(distributions, list):
+                distributions = [distributions]
+            
+            processed_distributions = []
+            for idx, dist in enumerate(distributions):
+                if isinstance(dist, dict):
+                    # Ensure @id exists
+                    if '@id' not in dist:
+                        # Generate an @id based on contentUrl or index
+                        if 'contentUrl' in dist:
+                            dist_id = f"#distribution_{hash(dist['contentUrl']) & 0x7FFFFFFF}"
+                        else:
+                            dist_id = f"#distribution_{idx}"
+                        dist['@id'] = dist_id
+                    processed_distributions.append(dist)
+                elif isinstance(dist, str):
+                    # If it's just a URL string, convert to proper DataDownload object
+                    processed_distributions.append({
+                        '@id': f"#distribution_{idx}",
+                        '@type': 'DataDownload',
+                        'contentUrl': dist
+                    })
+            
+            props['distribution'] = processed_distributions if len(processed_distributions) > 1 else processed_distributions[0] if processed_distributions else None
         
         # Add spatial coverage
         spatial_value = dataset.get('spatialCoverage') or dataset.get('spatial')

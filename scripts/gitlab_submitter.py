@@ -8,7 +8,7 @@ directories to GitLab repositories using the GitLab API.
 import os
 import base64
 from pathlib import Path
-from typing import Optional, Dict, Any, List
+from typing import Optional, Dict, Any
 import gitlab
 from dotenv import load_dotenv
 
@@ -65,14 +65,20 @@ class GitLabSubmitter:
         """
         import re
         # Convert to lowercase, replace spaces and special chars with hyphens
-        sanitized = re.sub(r'[^a-z0-9_-]', '-', name.lower())
-        # Remove consecutive hyphens
-        sanitized = re.sub(r'-+', '-', sanitized)
-        # Remove leading/trailing hyphens
-        sanitized = sanitized.strip('-')
-        # Limit length (GitLab has a 255 char limit)
+        sanitized = re.sub(r'[^a-z0-9_.-]', '-', name.lower())
+        # Remove consecutive hyphens/underscores
+        sanitized = re.sub(r'[-_]+', '-', sanitized)
+        # Remove leading/trailing hyphens, underscores, and dots
+        sanitized = sanitized.strip('-_.')
+        # Limit length (GitLab has a 255 char limit, use 100 for safety)
         if len(sanitized) > 100:
-            sanitized = sanitized[:100].rstrip('-')
+            sanitized = sanitized[:100]
+            # Strip any trailing invalid characters after truncation
+            sanitized = sanitized.rstrip('-_.')
+        # Ensure we don't end with .git or .atom
+        for suffix in ['.git', '.atom']:
+            if sanitized.endswith(suffix):
+                sanitized = sanitized[:-len(suffix)]
         return sanitized
     
     def create_project(self, name: str, description: str = "", 
@@ -92,6 +98,34 @@ class GitLabSubmitter:
         """
         # Sanitize the project name for GitLab path
         sanitized_name = self._sanitize_project_name(name)
+        
+        # Check if project already exists and make name unique if needed
+        original_sanitized = sanitized_name
+        counter = 1
+        max_attempts = 1000
+        
+        while counter < max_attempts:
+            try:
+                # Try to get existing project
+                existing = self.gl.projects.list(
+                    search=sanitized_name,
+                    namespace_id=self.namespace_id
+                )
+                
+                # Check if exact match exists
+                if any(p.path == sanitized_name for p in existing):
+                    # Project exists, append counter to make it unique
+                    # Keep within 100 char limit
+                    suffix = f"-{counter}"
+                    max_base_len = 100 - len(suffix)
+                    sanitized_name = original_sanitized[:max_base_len].rstrip('-_.') + suffix
+                    counter += 1
+                else:
+                    # No exact match, name is unique
+                    break
+            except Exception:
+                # If search fails, assume name is unique
+                break
         
         # Use python-gitlab library which handles topics correctly
         project_params = {
@@ -218,7 +252,7 @@ class GitLabSubmitter:
         }
         
         project = self.gl.projects.get(project_id)
-        result = project.files.create(data)
+        project.files.create(data)
         return {"file_path": repo_path, "branch": branch}
     
     def upload_directory(self, project_id: int, directory: Path, 
@@ -344,14 +378,14 @@ class GitLabSubmitter:
                     missing = set(topics) - set(actual_topics)
                     print(f"  ⚠ Note: {len(missing)} topic(s) not set (GitLab may have a limit): {', '.join(missing)}")
             else:
-                print(f"  ⚠ Topics not set - this may be a GitLab permission or configuration issue")
+                print("  ⚠ Topics not set - this may be a GitLab permission or configuration issue")
                 print(f"    Requested: {', '.join(topics)}")
         
         # Upload avatar if provided
         if avatar_path and avatar_path.exists():
             print(f"  Uploading avatar: {avatar_path.name}")
             self.upload_avatar(project['id'], avatar_path)
-            print(f"  ✓ Avatar uploaded")
+            print("  ✓ Avatar uploaded")
         
         # Create branch if not main
         if branch != "main":

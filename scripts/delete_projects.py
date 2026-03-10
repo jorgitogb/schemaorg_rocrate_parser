@@ -39,35 +39,43 @@ class ProjectDeleter:
     
     def get_projects_by_group(self, group_id: int) -> List:
         """
-        Get all projects in a specific group/namespace.
+        Get all active projects in a specific group/namespace.
         
         Args:
             group_id: GitLab group/namespace ID
             
         Returns:
-            List of project objects
+            List of active project objects
         """
         try:
-            group = self.gl.groups.get(group_id)
-            projects = group.projects.list(all=True)
+            # Use projects.list with owned=True to get all accessible projects
+            # Then filter by namespace
+            all_projects = self.gl.projects.list(owned=True, all=True)
+            
+            # Filter by group/namespace and exclude archived
+            projects = [p for p in all_projects 
+                       if p.namespace['id'] == group_id and not p.archived]
             return projects
         except Exception as e:
-            print(f"Error: Group {group_id} not found - {e}")
+            print(f"Error: Could not fetch projects for group {group_id} - {e}")
             return []
     
     def get_projects_by_topic(self, topic: str, group_id: Optional[int] = None) -> List:
         """
-        Get all projects with a specific topic.
+        Get all active projects with a specific topic.
         
         Args:
             topic: Topic/tag to search for
             group_id: Optional group ID to limit search
             
         Returns:
-            List of project objects
+            List of active project objects
         """
         search_params = {'topic': topic, 'owned': True}
-        projects = self.gl.projects.list(**search_params, all=True)
+        all_projects = self.gl.projects.list(**search_params, all=True)
+        
+        # Filter out archived projects
+        projects = [p for p in all_projects if not p.archived]
         
         # Filter by group if specified
         if group_id is not None:
@@ -77,12 +85,14 @@ class ProjectDeleter:
     
     def get_all_owned_projects(self) -> List:
         """
-        Get all projects owned by the current user.
+        Get all active projects owned by the current user.
         
         Returns:
-            List of project objects
+            List of active project objects
         """
-        return self.gl.projects.list(owned=True, all=True)
+        all_projects = self.gl.projects.list(owned=True, all=True)
+        # Filter out archived projects
+        return [p for p in all_projects if not p.archived]
     
     def delete_projects(self, projects: List, dry_run: bool = True) -> int:
         """

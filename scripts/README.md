@@ -2,28 +2,67 @@
 
 This directory contains executable scripts for working with ARCs and GitLab.
 
-## Batch Processor (Recommended)
+## Production Pipeline (Recommended)
+
+The `production_pipeline.py` script is the main production tool for processing Schema.org datasets. It automatically:
+
+- Reads all JSON files from `input_schemaorg/`
+- Converts to ISA RO-Crates
+- Creates ARCs using ARCtrl
+- Uploads to GitLab (dev or production)
+
+### Production Usage
+
+#### Dry run (test without creating files)
+
+```bash
+python scripts/production_pipeline.py --dry-run
+```
+
+#### Process and upload to development
+
+```bash
+python scripts/production_pipeline.py --env .env.dev
+```
+
+#### Process and upload to production
+
+```bash
+python scripts/production_pipeline.py --env .env.prod --branch main
+```
+
+#### Process only (skip GitLab upload)
+
+```bash
+python scripts/production_pipeline.py --skip-gitlab
+```
+
+## Batch Processor (Alternative)
 
 The `batch_processor.py` script processes multiple JSON files containing Schema.org metadata, converting them to ISA RO-Crates, creating ARC structures, and optionally submitting them to GitLab.
 
 ### Usage
 
-#### Process all JSON files in a directory:
+#### Process all JSON files in a directory
+
 ```bash
 python scripts/batch_processor.py examples/
 ```
 
-#### Specify custom output directory:
+#### Specify custom output directory
+
 ```bash
 python scripts/batch_processor.py examples/ --output my_output/
 ```
 
-#### Process and submit to GitLab:
+#### Process and submit to GitLab
+
 ```bash
 python scripts/batch_processor.py examples/ --submit
 ```
 
-#### Process a single file:
+#### Process a single file
+
 ```bash
 python scripts/batch_processor.py examples/ --file example_bonares.json
 ```
@@ -75,6 +114,7 @@ When submitting to GitLab, projects are automatically tagged with topics:
 4. **dataset**: Added as fallback if no keywords are found
 
 **Example:**
+
 - File: `edal_full.json`
 - Keywords: `"Pollen Embryogenese, Hordeum vulgare, Mikrosporen, Proteinanalyse"`
 - Topics: `edal`, `fairagro`, `hordeum-vulgare`, `mikrosporen`, `pollen-embryogenese`, `proteinanalyse`
@@ -86,11 +126,13 @@ When submitting to GitLab, projects are automatically tagged with topics:
 - **gitlab_submitter.py**: GitLab API client for ARC submission
 
 ### Create an ARC
+
 ```bash
 uv run python scripts/arc_creator.py output_crates/example/ro-crate-metadata.json
 ```
 
 ### Submit to GitLab
+
 ```bash
 uv run python scripts/gitlab_submit.py output_crates/example/arc --branch main
 ```

@@ -14,3 +14,7 @@ wheels/
 .env.local
 .env.dev
 .env.prod
+
+# output data
+output_crates/
+
